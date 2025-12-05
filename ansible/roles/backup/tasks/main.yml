@@ -1,0 +1,99 @@
+- file:
+    path: "{{ backup_dir }}/{{ item }}"
+    state: directory
+    mode: "0750"
+  with_items:
+    - state
+    - state/hourly
+    - state/daily
+    - var
+
+- copy:
+    dest: "{{ backup_dir }}/state/hourly/logrotate.conf"
+    mode: "0640"
+    content: |
+      {{ home }}/meeting-mutex/meeting_mutex_state.json {
+        size 0
+        copy
+        nocreate
+        dateext
+        dateformat -%Y%m%d-%H%M
+        olddir {{ backup_dir }}/state/hourly
+        rotate 96
+        compress
+        compresscmd /usr/bin/zstd
+        compressext .zst
+      }
+
+- copy:
+    dest: "{{ backup_dir }}/state/daily/logrotate.conf"
+    mode: "0640"
+    content: |
+      {{ home }}/meeting-mutex/meeting_mutex_state.json {
+        size 0
+        copy
+        nocreate
+        dateext
+        dateformat -%Y%m%d
+        olddir {{ backup_dir }}/state/daily
+        rotate 60
+        compress
+        compresscmd /usr/bin/zstd
+        compressext .zst
+      }
+
+- copy:
+    dest: "{{ home }}/.config/systemd/user/meeting-mutex-snapshot-hourly.service"
+    content: |
+      [Unit]
+      Description=meeting-mutex hourly snapshot (service)
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/sbin/logrotate -s {{ backup_dir }}/var/hourly.status {{ backup_dir }}/state/hourly/logrotate.conf
+      [Install]
+      WantedBy=default.target
+
+- copy:
+    dest: "{{ home }}/.config/systemd/user/meeting-mutex-snapshot-hourly.timer"
+    content: |
+      [Unit]
+      Description=meeting-mutex hourly snapshot (timer)
+      [Timer]
+      OnCalendar=hourly
+      Persistent=true
+      AccuracySec=1min
+      [Install]
+      WantedBy=timers.target
+
+- copy:
+    dest: "{{ home }}/.config/systemd/user/meeting-mutex-snapshot-daily.service"
+    content: |
+      [Unit]
+      Description=meeting-mutex daily snapshot (service)
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/sbin/logrotate -s {{ backup_dir }}/var/daily.status {{ backup_dir }}/state/daily/logrotate.conf
+      [Install]
+      WantedBy=default.target
+
+- copy:
+    dest: "{{ home }}/.config/systemd/user/meeting-mutex-snapshot-daily.timer"
+    content: |
+      [Unit]
+      Description=meeting-mutex daily snapshot (timer)
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+      AccuracySec=1min
+      [Install]
+      WantedBy=timers.target
+
+- systemd:
+    name: "meeting-mutex-snapshot-{{ item }}.timer"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true
+  with_items:
+    - hourly
+    - daily

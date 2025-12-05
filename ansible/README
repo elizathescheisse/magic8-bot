@@ -1,0 +1,13 @@
+this describes how this bot is deployed and how you can deploy your changes to
+it
+
+it runs on broome.cluster.recurse.com as the svc-magic8-bot user. you can
+add yourself as a maintainer of the bot by submitting a merge-request against
+github.com/recursecenter/cluster-config, adding yourself to the maintainer
+list in roles/svc-accts/vars/main.yml. if anyone asks if it's cool with the
+original author to add you, point them here (@rafl): yes, it's cool!
+
+this ansible/ directory contains the code to deploy this whole thing to broome.
+to do that, run
+
+uv run ansible-playbook -i ansible/inventory ansible/deploy.yml

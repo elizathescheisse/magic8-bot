@@ -1,0 +1,18 @@
+- file:
+    path: "{{ tgt }}"
+    state: directory
+
+- copy:
+    src: "{{ repo }}/{{ item }}"
+    dest: "{{ tgt }}/{{ item }}"
+    mode: 0600
+  with_items:
+    - magic8.py
+    - uv.lock
+    - .python-version
+    - pyproject.toml
+    - zuliprc
+
+- command: ~/.local/bin/uv sync
+  args:
+    chdir: "{{ tgt }}"

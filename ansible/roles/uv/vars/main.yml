@@ -1,0 +1,1 @@
+uv_home_prefix: "{{ ansible_env.HOME }}/.local/bin"

@@ -1,0 +1,22 @@
+- file:
+    path: "{{ home }}/.config/systemd/user"
+    state: directory
+    mode: "0755"
+
+- copy:
+    dest: "{{ home }}/.config/systemd/user/magic8-bot.service"
+    content: |
+      [Unit]
+      Description=magic8-bot (service)
+      [Service]
+      WorkingDirectory={{ home }}/magic8-bot
+      ExecStart={{ home }}/.local/bin/uv run python magic8.py
+      [Install]
+      WantedBy=default.target
+
+- systemd:
+    name: "magic8-bot.service"
+    scope: user
+    enabled: true
+    state: restarted
+    daemon_reload: true

@@ -1,0 +1,6 @@
+- shell: >
+    curl -LsSf https://astral.sh/uv/install.sh
+    | env UV_INSTALL_DIR="{{ uv_home_prefix }}" UV_NO_MODIFY_PATH=1 sh -s --
+  args:
+    creates: "{{ uv_home_prefix }}/bin/uv"
+  changed_when: false  # curl|sh exits 0 even if already installed; creates guards real changes
